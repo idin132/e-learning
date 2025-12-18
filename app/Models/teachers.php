@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class teachers extends Model
 {
     use HasFactory;
+
+    // Pastikan user_id bisa diisi
+    protected $guarded = [];
     protected $fillable = [
         'user_id',
         'nip',

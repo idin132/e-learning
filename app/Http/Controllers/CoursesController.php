@@ -12,27 +12,62 @@ class CoursesController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $courses = courses::all();
-        return view('student.courses-catalog', compact('courses'));
+        $courses = collect(); // Siapkan collection kosong agar tidak error jika data null
+
+        // --- SKENARIO 1: JIKA YANG LOGIN ADALAH SISWA ---
+        if ($user->role == 'student') {
+            // Cek apakah data profile siswa ada?
+            if ($user->student) {
+                $courses = courses::where('class_id', $user->student->class_id)
+                    ->with(['subject', 'teachers.user'])
+                    ->get();
+            }
+        }
+
+        // --- SKENARIO 2: JIKA YANG LOGIN ADALAH GURU ---
+        elseif ($user->role == 'teacher') {
+            // Cek apakah data profile guru ada?
+            if ($user->teacher) {
+                // Guru melihat 'My Class' berdasarkan apa yang DIA AJAR
+                // Filter berdasarkan 'teacher_id'
+                $courses = courses::where('teacher_id', $user->teacher->id)
+                    ->with(['subject', 'classRoom']) // Kita butuh data kelas (classRoom) untuk ditampilkan
+                    ->get();
+            }
+        }
+
+        return view('student.my-classes', compact('courses'));
     }
 
     // Halaman Detail Materi (Isi Pelajaran)
     public function show($id)
     {
         $user = Auth::user();
-        $studentClassId = $user->student->class_id;
 
-        // 1. Cari Course
+        // 1. Cari Course terlebih dahulu
+        // (Penting: Ambil data dulu baru kita cek siapa yang boleh lihat)
         $courses = courses::with(['chapters.materials', 'teachers.user', 'subject'])
             ->findOrFail($id);
 
-        // 2. KEAMANAN: Cek apakah course ini untuk kelas siswa tersebut?
-        // Jika BUKAN kelasnya, tolak akses (403 Forbidden)
-        if ($courses->class_id !== $studentClassId) {
-            // Nanti di sini kamu bisa tambah logika cek tabel pivot jika sudah fitur Enroll beneran
-            abort(403, 'Maaf, Anda tidak terdaftar di kelas ini. Silakan Enroll terlebih dahulu.');
+        // 2. LOGIKA KEAMANAN (Cek Hak Akses)
+        
+        // SKENARIO A: Jika yang akses adalah GURU
+        if ($user->role == 'teacher') {
+            // Cek apakah data guru ada DAN apakah dia yang mengajar course ini?
+            if (!$user->teacher || $courses->teacher_id !== $user->teacher->id) {
+                abort(403, 'Akses Ditolak: Anda bukan pengajar mata pelajaran ini.');
+            }
+        } 
+        
+        // SKENARIO B: Jika yang akses adalah SISWA
+        elseif ($user->role == 'student') {
+            // Cek apakah data siswa ada DAN apakah dia satu kelas dengan course ini?
+            if (!$user->student || $courses->class_id !== $user->student->class_id) {
+                abort(403, 'Maaf, Anda tidak terdaftar di kelas ini.');
+            }
         }
 
-        return view('student.courses-detail', compact('courses')); // variable disesuaikan jadi singular $course
+        // 3. Jika lolos pengecekan di atas, tampilkan view
+        return view('student.courses-detail', compact('courses')); 
     }
 }

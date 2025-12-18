@@ -13,8 +13,14 @@ class materials extends Model
         'chapter_id',
         'title',
         'type',
-        'file_path',    
+        'file_path',
         'content',
         'is_published',
     ];
+
+    // --- TAMBAHKAN INI AGAR CONTROLLER TIDAK ERROR ---
+    public function chapter()
+    {
+        return $this->belongsTo(chapters::class, 'chapter_id', 'id');
+    }
 }

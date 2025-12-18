@@ -38,11 +38,63 @@
 
 <div class="space-y-4">
     <h2 class="text-xl font-bold text-gray-800 mb-4">Course Content</h2>
+    @if(auth()->user()->role == 'teacher' && $courses->teacher_id == auth()->user()->teacher->id)
+
+        <div class="mb-6 bg-blue-50 p-4 rounded-xl border border-blue-100">
+            <h3 class="font-bold text-blue-800 mb-2">Kelola Bab Pembelajaran</h3>
+
+            <form action="{{ route('teacher.chapter.store', $courses->id) }}" method="POST" class="flex gap-2">
+                @csrf
+                <input type="text" name="title" required placeholder="Contoh: Bab 1 - Pengenalan Dasar"
+                    class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+                <button type="submit"
+                    class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors">
+                    + Tambah Bab
+                </button>
+            </form>
+        </div>
+
+    @endif
 
     @forelse($courses->chapters as $index => $chapter)
         <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                <h3 class="font-bold text-gray-800">Chapter {{ $index + 1 }}: {{ $chapter->title }}</h3>
+
+                <!-- <h3 class="font-bold text-gray-800">Chapter {{ $index + 1 }}: {{ $chapter->title }}</h3> -->
+
+                <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+
+                    <h3 class="font-bold text-gray-800">Chapter {{ $index + 1 }}: {{ $chapter->title }}</h3>
+
+                    <div class="flex items-center gap-2">
+                        @if(auth()->user()->role == 'teacher' && $courses->teacher_id == auth()->user()->teacher->id)
+
+                            <form action="{{ route('teacher.chapter.destroy', $chapter->id) }}" method="POST"
+                                onsubmit="return confirm('Hapus Bab ini beserta isinya?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-red-500 hover:text-red-700 p-1" title="Hapus Bab">
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </form>
+                        @endif
+                    </div>
+                </div>
+
+                @if(auth()->user()->role == 'teacher' && $courses->teacher_id == auth()->user()->teacher->id)
+                    <a href="{{ route('teacher.material.create', $chapter->id) }}"
+                        class="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition-colors">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Tambah Materi
+                    </a>
+                @endif
+
             </div>
 
             <div class="p-2">
@@ -73,9 +125,39 @@
                             </div>
                             <div>
                                 <h4 class="text-sm font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">
-                                    {{ $material->title }}</h4>
+                                    {{ $material->title }}
+                                </h4>
                                 <p class="text-xs text-gray-400 capitalize">{{ $material->type }}</p>
                             </div>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <a href="..." class="...">Buka</a>
+
+                            {{-- FITUR GURU: Tombol Edit & Delete --}}
+                            @if(auth()->user()->role == 'teacher' && $courses->teacher_id == auth()->user()->teacher->id)
+
+                                <a href="{{ route('teacher.material.edit', $material->id) }}"
+                                    class="p-2 text-yellow-500 hover:bg-yellow-50 rounded">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                    </svg>
+                                </a>
+
+                                <form action="{{ route('teacher.material.destroy', $material->id) }}" method="POST"
+                                    onsubmit="return confirm('Yakin hapus materi ini?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="p-2 text-red-500 hover:bg-red-50 rounded">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </form>
+
+                            @endif
                         </div>
 
                         <a href="{{ $material->type == 'link' ? $material->content : asset('storage/' . $material->file_path) }}"

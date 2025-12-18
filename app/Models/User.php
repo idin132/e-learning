@@ -49,8 +49,15 @@ class User extends Authenticatable
         return $this->hasOne(students::class);
     }
 
-    public function teachers()
+    // public function teachers()
+    // {
+    //     return $this->hasOne(teachers::class);
+    // }
+
+    public function teacher()
     {
-        return $this->hasOne(teachers::class);
+        // Relasi: User punya 1 data di tabel teachers
+        // 'user_id' adalah nama kolom penghubung di tabel teachers
+        return $this->hasOne(teachers::class, 'user_id');
     }
 }
