@@ -7,6 +7,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TeacherMaterialController;
 use App\Http\Controllers\TeacherChapterController;
+use App\Http\Controllers\StudentsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,6 +27,8 @@ Route::get('/', function () {
 Route::resource('classes', App\Http\Controllers\ClassesController::class);
 Route::resource('courses', App\Http\Controllers\CoursesController::class);
 Route::resource('dashboard', App\Http\Controllers\DashboardController::class);
+route::resource('students', App\Http\Controllers\StudentsController::class);
+route::get('/course-material', [TeacherMaterialController::class, 'index'])->name('teacher-material.index');
 
 // Halaman Guest (Belum Login)
 Route::middleware('guest')->group(function () {

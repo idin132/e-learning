@@ -24,30 +24,80 @@ class TeacherMaterialController extends Controller
         return view('teacher.materials.create', compact('chapter'));
     }
 
+    // public function store(Request $request, $chapterId)
+    // {
+    //     // --- DEBUGGING ---
+    //     // Hapus baris ini nanti jika sudah berhasil
+    //     // dd($request->all()); 
+    //     // -----------------
+
+    //     $request->validate([
+    //         'title' => 'required|string|max:255',
+    //         'type' => 'required|in:pdf,video,link,text',
+    //         // Koreksi validasi file: pastikan 'max' dalam Kilobytes (10MB = 10240KB)
+    //         'file' => 'required_if:type,pdf,video|file|max:10240',
+    //         'link' => 'required_if:type,link|active_url', // Gunakan active_url atau url
+    //         'content' => 'required_if:type,text|string|nullable',
+    //     ]);
+
+    //     $filePath = null;
+    //     $content = $request->content;
+
+    //     // Upload File jika ada
+    //     if ($request->hasFile('file')) {
+    //         $filePath = $request->file('file')->store('materials', 'public');
+    //     }
+    //     // Simpan Link di kolom content jika tipe link
+    //     if ($request->type == 'link') {
+    //         $content = $request->link;
+    //     }
+
+    //     // Ganti Material::create jadi materials::create
+    //     materials::create([
+    //         'chapter_id' => $chapterId,
+    //         'title' => $request->title,
+    //         'type' => $request->type,
+    //         'file_path' => $filePath,
+    //         'content' => $content,
+    //         'is_published' => true,
+    //         // ...
+    //     ]);
+
+    //     return redirect()->back()->with('success', 'Materi berhasil ditambahkan!');
+    // }
+
     public function store(Request $request, $chapterId)
     {
         $request->validate([
             'title' => 'required|string|max:255',
             'type' => 'required|in:pdf,video,link,text',
-            // File wajib ada jika tipe pdf/video, URL wajib jika link
-            'file' => 'required_if:type,pdf,video|file|max:10240', // Max 10MB
-            'link' => 'required_if:type,link|url',
-            'content' => 'required_if:type,text|string',
+
+            // TAMBAHKAN 'nullable' DI SINI
+            // Artinya: Wajib diisi JIKA type-nya pdf/video. Tapi kalau kosong (nullable), loloskan saja (jangan cek max/file).
+            'file' => 'required_if:type,pdf,video|nullable|file|max:10240',
+
+            // TAMBAHKAN 'nullable' JUGA DI SINI
+            // Artinya: Wajib JIKA type-nya link. Kalau kosong (nullable), jangan paksa cek format URL.
+            'link' => 'required_if:type,link|nullable|url',
+
+            // INI JUGA
+            'content' => 'required_if:type,text|nullable|string',
         ]);
+
+        // ... (kode simpan ke database di bawahnya tetap sama) ...
 
         $filePath = null;
         $content = $request->content;
 
-        // Upload File jika ada
         if ($request->hasFile('file')) {
             $filePath = $request->file('file')->store('materials', 'public');
         }
-        // Simpan Link di kolom content jika tipe link
+
         if ($request->type == 'link') {
             $content = $request->link;
         }
 
-        // Ganti Material::create jadi materials::create
+        // Pastikan pakai model materials (huruf kecil sesuai model kamu)
         materials::create([
             'chapter_id' => $chapterId,
             'title' => $request->title,
@@ -55,10 +105,10 @@ class TeacherMaterialController extends Controller
             'file_path' => $filePath,
             'content' => $content,
             'is_published' => true,
-            // ...
         ]);
 
-        return redirect()->back()->with('success', 'Materi berhasil ditambahkan!');
+        $chapter = \App\Models\chapters::findOrFail($chapterId);
+        return redirect()->route('course.show', $chapter->course_id)->with('success', 'Materi berhasil ditambahkan!');
     }
 
     public function edit($id)

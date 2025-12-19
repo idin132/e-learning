@@ -8,17 +8,30 @@
     </div>
 
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+
+        @if ($errors->any())
+            <div class="mb-4 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
+                <ul class="list-disc list-inside">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <form action="{{ route('teacher.material.store', $chapter->id) }}" method="POST" enctype="multipart/form-data">
             @csrf
 
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Judul Materi</label>
-                <input type="text" name="title" required class="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                <input type="text" name="title" required
+                    class="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
             </div>
 
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Tipe Materi</label>
-                <select name="type" id="typeSelector" class="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                <select name="type" id="typeSelector"
+                    class="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
                     <option value="pdf">Dokumen PDF</option>
                     <option value="video">Video Upload</option>
                     <option value="link">Link Eksternal (YouTube/Zoom)</option>
@@ -34,7 +47,8 @@
 
             <div id="linkInput" class="mb-4 hidden">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Link URL</label>
-                <input type="url" name="link" placeholder="https://youtube.com/..." class="w-full px-4 py-2 border rounded-lg">
+                <input type="url" name="link" placeholder="https://youtube.com/..."
+                    class="w-full px-4 py-2 border rounded-lg">
             </div>
 
             <div id="textInput" class="mb-4 hidden">
@@ -56,7 +70,7 @@
     const linkInput = document.getElementById('linkInput');
     const textInput = document.getElementById('textInput');
 
-    typeSelector.addEventListener('change', function() {
+    typeSelector.addEventListener('change', function () {
         // Sembunyikan semua dulu
         fileInput.classList.add('hidden');
         linkInput.classList.add('hidden');
